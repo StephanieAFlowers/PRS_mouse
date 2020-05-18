@@ -1,0 +1,35 @@
+#Packages Needed
+library(shape)
+library(plyr)
+library(reshape2)
+library(ggplot2)
+library(tidyr)
+library(gridExtra)
+library(dplyr)
+
+##Files needed
++SCFA4.txt
+
+x<-read.table(file="SCFA4.txt", header=TRUE ,stringsAsFactors = FALSE, sep = "\t")
+
+t.test(x$BA~x$Group)
+
+NS<-subset(x, Group == "NS")
+PRS<-subset(x, Group == "PRS")
+
+summary(NS$BA)
+
+#NS BA Mean1021 ##SD434, #586
+sd(NS$BA)
+
+summary(PRS$BA)
+
+sd(PRS$BA) ##Mean 709.6, SD118.17
+
+           
+p<-boxplot(BA ~ Group, data=x, xlab= "", ylab = "Butyric Acid Levels (nmol/g)", axix.test.x=4) 
+p+theme(axis.title.y = element_text(size = 15)) +theme(axis.text.x = element_text(size=40))
+stripchart(BA ~ Group, data = x, 
+           vertical = TRUE, method = "jitter", 
+           pch = 19,  col = "black", 
+           add = TRUE, cex=2)           
