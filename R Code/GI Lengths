@@ -1,0 +1,51 @@
+
+setwd("~/Desktop/PRS_screen_shots")
+
+library(shape)
+library(plyr)
+library(reshape2)
+library(ggplot2)
+library(tidyr)
+library(gridExtra)
+library(dplyr)
+
+
+###Files needed
++ PRS_GI_LENGTH.txt
+
+
+x<-read.table(file="PRS_GI_LENGTH.txt", header=T,stringsAsFactors = FALSE, sep = "\t")
+
+###eliminating butyrate samples
+y<- subset(x, Butyrate == "Control")
+y<- y[,-3]
+
+b<- subset(y, Stress == "PRS" )
+a<- subset(y, Stress == "NS" )
+
+p<- ggplot(y, aes(x=Stress, y=GI, fill=Stress)) + geom_boxplot() 
+                 
+a<-p+ scale_y_continuous(limits= c(20,60)) + labs(x="", y = "GI Length (cm)")+theme_classic() + theme(legend.position="none") +theme(axis.text.x=element_blank(), axis.ticks.x=element_blank()) + scale_fill_manual(values=c("darkolivegreen4", "darkgoldenrod2")) + theme(axis.text.x=element_blank(), axis.text.y=element_text(size=14)) + theme(axis.title.y = element_text(size=14)) 
+
+#t.test(a$GI,b$GI, var.equal=TRUE) #p-value = 0.002367
+
+
+r<- ggplot(y, aes(x=Stress, y=SI, fill=Stress)) + geom_boxplot() 
+ 
+b<-r+ scale_y_continuous(limits= c(20,60)) + labs(x="", y = "SI Length (cm)")+theme_classic() + theme(legend.position="none") +theme(axis.text.x=element_blank(), axis.ticks.x=element_blank()) + scale_fill_manual(values=c("darkolivegreen4", "darkgoldenrod2")) + theme(axis.text.x=element_blank(), axis.text.y=element_text(size=14)) + theme(axis.title.y = element_text(size=14)) 
+
+#t.test(a$SI,b$SI, var.equal=TRUE) #p-value = 0.004451
+
+
+s<- ggplot(y, aes(x=Stress, y=LI, fill=Stress)) + geom_boxplot() 
+ 
+c<-s+ scale_y_continuous(limits= c(0,15)) + labs(x="", y = "LI Length (cm)")+theme_classic() + theme(legend.position="none") +theme(axis.text.x=element_blank(), axis.ticks.x=element_blank()) + scale_fill_manual(values=c("darkolivegreen4", "darkgoldenrod2")) + theme(axis.text.x=element_blank(), axis.text.y=element_text(size=14)) + theme(axis.title.y = element_text(size=14)) 
+
+#t.test(a$LI,b$LI, var.equal=TRUE) #p-value = 0.08
+
+
+grid.arrange(a,b,c, ncol=3)
+
+####generating legend
+
+c<-s+ scale_y_continuous(limits= c(0,15)) + labs(x="", y = "LI Length (cm)")+theme_classic()  +theme(axis.text.x=element_blank(), axis.ticks.x=element_blank()) + scale_fill_manual(values=c("darkolivegreen4", "darkgoldenrod2")) + theme(axis.text.x=element_blank(), axis.text.y=element_text(size=14)) + theme(axis.title.y = element_text(size=14)) 
