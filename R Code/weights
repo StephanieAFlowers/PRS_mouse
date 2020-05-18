@@ -1,0 +1,117 @@
+##Packages needed
+library(shape)
+library(plyr)
+library(reshape2)
+library(ggplot2)
+library(tidyr)
+library(gridExtra)
+library(dplyr)
+
+
+##Files needed
++PRS_Weight.txt
++test2.txt
+
+#######Weight change over time
+
+x<-read.table(file="PRS_Weight.txt", header=T,stringsAsFactors = FALSE, sep = "\t")
+y<-unite_(x, "Group", c("Stress","group"))
+z<-y[,-c(1,2)]
+
+
+#start from here- creating summary statistics
+
+df2 <- ddply(z,"Group", summarise,
+			mean = mean(baseline, na.rm=TRUE),
+               sd   = sd(baseline, na.rm=TRUE),
+               
+)
+df2
+colnames(df2)[2]<- "baseline_mean"
+colnames(df2)[3]<- "baseline_sd"
+
+                    
+df3 <- ddply(z,"Group", summarise,
+			mean = mean(week1, na.rm=TRUE),
+               sd   = sd(week1, na.rm=TRUE),
+               )
+df3
+colnames(df3)[2]<- "week1_mean"
+colnames(df3)[3]<- "week1_sd"
+
+
+df<-merge(df2,df3, by.x="Group", by.y="Group")
+
+df4 <- ddply(z,"Group", summarise,
+			mean = mean(week2, na.rm=TRUE),
+               sd   = sd(week2, na.rm=TRUE),
+               )
+df4
+colnames(df4)[2]<- "week2_mean"
+colnames(df4)[3]<- "week2_sd"
+df<-merge(df,df4, by.x="Group", by.y="Group")
+
+df5 <- ddply(z,"Group", summarise,
+			mean = mean(week3, na.rm=TRUE),
+               sd   = sd(week3, na.rm=TRUE),
+               )
+df5
+colnames(df5)[2]<- "week3_mean"
+colnames(df5)[3]<- "week3_sd"
+df<-merge(df,df5, by.x="Group", by.y="Group")
+
+df6 <- ddply(z,"Group", summarise,
+			mean = mean(week4, na.rm=TRUE),
+               sd   = sd(week4, na.rm=TRUE),
+               )
+df6
+colnames(df6)[2]<- "week4_mean"
+colnames(df6)[3]<- "week4_sd"
+df<-merge(df,df6, by.x="Group", by.y="Group")
+
+df7 <- ddply(z,"Group", summarise,
+			mean = mean(week5, na.rm=TRUE),
+               sd   = sd(week5, na.rm=TRUE),
+               )
+df7
+colnames(df7)[2]<- "week5_mean"
+colnames(df7)[3]<- "week5_sd"
+df<-merge(df,df7, by.x="Group", by.y="Group")
+
+df8 <- ddply(z,"Group", summarise,
+			mean = mean(week6, na.rm=TRUE),
+               sd   = sd(week6, na.rm=TRUE),
+               )
+df8
+colnames(df8)[2]<- "week6_mean"
+colnames(df8)[3]<- "week6_sd"
+df<-merge(df,df8, by.x="Group", by.y="Group")
+
+
+
+df<-as.data.frame(df)
+write.table(df, file = "test.txt", sep = "\t", col.names = TRUE)
+
+
+##manipulated file in excel
+######if managing figure- start from here
+
+x<-read.table(file="test2.txt", header=T,stringsAsFactors = FALSE, sep = "\t")
+
+pd<- position_dodge(0.3)
+
+p<- ggplot(x, aes(x=date, y=mean, colour=Group, group=Group)) + 
+geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=0.2, size =0.25, colour= "black", position=pd) +
+	geom_line(size=1)+
+geom_point( position=pd, size=2.5) +
+scale_color_manual(values=c('darkolivegreen2','darkolivegreen4', "darkgoldenrod ", "darkgoldenrod2")) +
+theme_classic() + labs( x="Time in Weeks", y = "Weight (g)")+ guides(fill=guide_legend(title="Groups")) +
+theme(axis.text.x = element_blank(), axis.text.y = (element_text(size=14)), axis.title.x = element_text(size=14),
+axis.title.y = element_text( size=14)) +
+theme(legend.position = "none")
+
+print(p)
+
+
+
+
