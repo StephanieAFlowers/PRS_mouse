@@ -1,0 +1,29 @@
+##Packages needed
+library(shape)
+library(plyr)
+library(reshape2)
+library(ggplot2)
+library(tidyr)
+library(gridExtra)
+library(dplyr)
+
+##Files needed
++Water_Consumption.txt
+
+
+x<-read.table(file="Water_Consumption.txt", header=T,stringsAsFactors = FALSE, sep = "\t")
+
+##removing _Control from Group labels
+x$Group<-gsub("_Control","", x$Group)
+
+
+p<- ggplot(x, aes(x=Group, y=Consumption, fill=Group)) + 
+  geom_bar(stat="identity", color="black", 
+           position=position_dodge()) +
+  geom_errorbar(aes(ymin=Consumption, ymax=Consumption+sd), width=.1,
+                 position=position_dodge(.9)) 
+                 
+p+labs( x="", y = "Water Consumption (mL)")+
+   theme_classic() +  theme(axis.text.x=element_blank(), axis.text.y=element_text(size=14))+ scale_fill_manual(values=c("darkolivegreen4 ", "darkolivegreen2", "darkgoldenrod2","darkgoldenrod ")) +  guides(fill=guide_legend(title=NULL), axis.title.y = element_text( size=18)) +
+   theme(axis.title.y = element_text(size=14)) +
+   theme(legend.position = "none")
