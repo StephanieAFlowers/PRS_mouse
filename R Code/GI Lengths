@@ -1,6 +1,6 @@
+###Lengths were determined using Image J software
 
-setwd("~/Desktop/PRS_screen_shots")
-
+##Packages needed 
 library(shape)
 library(plyr)
 library(reshape2)
