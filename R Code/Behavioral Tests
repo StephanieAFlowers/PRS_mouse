@@ -1,0 +1,180 @@
+##Packages needed
+library(shape)
+library(plyr)
+library(reshape2)
+library(ggplot2)
+library(tidyr)
+library(gridExtra)
+library(dplyr)
+
+##Files needed
++PRS_NSM.txt
++SI.txt
+
+################Locomotor Test-Open Field
+
+y<-read.table(file="PRS_NSM.txt", header=T,stringsAsFactors = FALSE, sep = "\t")
+
+
+#test of normality- shapiro test
+
+shapiro.test(y$Ratio.M.Cdist) ##Pvalue=0.008- not normally distributed
+shapiro.test(y$Ratio.M.Ctime) ##0.3732- normal distribution
+
+shapiro.test(y$HACTV) # normal
+shapiro.test(y$MOVNO) # normal
+shapiro.test(y$STRCNT) # normal
+
+#Ttest for comparison significance (time)
+
+b<- subset(y, NS_PRS == "PRS" )
+a<- subset(y, NS_PRS == "NS" )
+
+#does data pass homoscedasticity= are the variances homogeneous
+
+var.test(a$Ratio.M.Ctime,b$Ratio.M.Ctime) #p=0.8
+var.test(a$MOVNO,b$MOVNO)
+var.test(a$STRCNT,b$STRCNT)
+var.test(a$HACTV,b$HACTV)
+
+tt<-t.test(a$Ratio.M.Ctime,b$Ratio.M.Ctime, var.equal=TRUE) #p-value = 0.02
+ss<-t.test(a$MOVNO,b$MOVNO, var.equal=TRUE) #p-value = 0.04
+rr<-t.test(a$STRCNT,b$STRCNT, var.equal=TRUE) #p-value = 0.05
+qq<-t.test(a$HACTV,b$HACTV, var.equal=TRUE) #p-value = 0.03
+
+#Wilcoxan for distance
+
+var.test(a$Ratio.M.Cdist,b$Ratio.M.Cdist) ##0.1
+wilcox.test(a$Ratio.M.Cdist , b$Ratio.M.Cdist, var.equal=TRUE) ##0.03
+t.test(a$Ratio.M.Cdist , b$Ratio.M.Cdist, var.equal=TRUE) ##0.036
+
+
+#averaging the time points per ID
+data_summary <- function(data, varname, groupnames){
+  require(plyr)
+  summary_func <- function(x, col){
+    c(mean = mean(x[[col]], na.rm=TRUE),
+      sd = sd(x[[col]], na.rm=TRUE),
+      n = x[[]],
+      se = sd(x[[col]]/sqrt(n)))
+  }
+  data_sum<-ddply(data, groupnames, .fun=summary_func,
+                  varname)
+  data_sum <- rename(data_sum, c("mean" = varname))
+ return(data_sum)
+}
+
+Summary_Dist<- as.data.frame(Summary_Dist<- y %>%	
+	group_by(NS_PRS) %>%
+	summarise(mean_Dist = mean(Ratio.M.Cdist),
+	sd= sd(Ratio.M.Cdist),
+	n= n(),
+	se= sd(Ratio.M.Cdist)/sqrt(n())))
+	
+
+Summary_Time<- as.data.frame(Summary_Time <- y %>%	
+	group_by(NS_PRS) %>%
+	summarise(mean = mean(Ratio.M.Ctime),
+	sd= sd(Ratio.M.Ctime),
+	n= n(),
+	se= sd(Ratio.M.Ctime)/sqrt(n())))
+	
+
+Summary_HACTV<- as.data.frame (Summary_HACTV <- y %>%	
+	group_by(NS_PRS) %>%
+	summarise(mean = mean(HACTV),
+	sd= sd(HACTV),
+	n= n(),
+	se= sd(HACTV)/sqrt(n())))
+	
+
+Summary_STRCNT<-as.data.frame(Summary_STRCNT<- y %>%	
+	group_by(NS_PRS) %>%
+	summarise(mean = mean(STRCNT),
+	sd= sd(STRCNT),
+	n= n(),
+	se= sd(STRCNT)/sqrt(n())))
+
+Summary_MOVNO<- as.data.frame(Summary_MOVNO <- y %>%	
+	group_by(NS_PRS) %>%
+	summarise(mean = mean(MOVNO),
+	sd= sd(MOVNO),
+	n= n(),
+	se= sd(MOVNO)/sqrt(n())))
+
+####distance
+
+
+a<-ggplot(Summary_Dist, aes(x=NS_PRS, y=mean_Dist, fill=NS_PRS)) + geom_bar( stat= "identity", width=width=0.45,, color = "black") +
+geom_errorbar(aes(ymin=mean_Dist , ymax= mean_Dist+se), width = 0.05) 
+
+c<-a+ scale_y_continuous(limits= c(0,2.5)) + labs(x="", y = "Ratio of Distance Spent on Margin vs Center")+theme_classic() + theme(legend.position="none") +theme(axis.text.x=element_blank(), axis.ticks.x=element_blank()) + scale_fill_manual(values=c("gray ", "black"))
+
+b<-ggplot(Summary_Time, aes(x=NS_PRS, y=mean, fill=NS_PRS)) + geom_bar( stat= "identity", width=0.45,, color = "black") +
+geom_errorbar(aes(ymin= mean , ymax= mean+se), width = 0.05) 
+
+d<-b+ scale_y_continuous(limits= c(0,2.5)) + labs(x="", y = "Ratio of Time Spent on Margin vs Center")+theme_classic() + theme(legend.position="none") +theme(axis.text.x=element_blank(), axis.ticks.x=element_blank()) + scale_fill_manual(values=c("gray ", "black"))
+
+e<-ggplot(Summary_HACTV, aes(x=NS_PRS, y=mean, fill=NS_PRS)) + geom_bar( stat= "identity", width=0.45,, color = "black") +
+geom_errorbar(aes(ymin= mean , ymax= mean+se), width = 0.05) 
+
+f<-e+ scale_y_continuous(limits= c(0,3500)) + labs(x="", y = "Horizontal Movement")+theme_classic() + theme(legend.position="none") +theme(axis.text.x=element_blank(), axis.ticks.x=element_blank()) + scale_fill_manual(values=c("gray ", "black"))
+
+g<-ggplot(Summary_STRCNT, aes(x=NS_PRS, y=mean, fill=NS_PRS)) + geom_bar( stat= "identity", width=0.45,, color = "black") +
+geom_errorbar(aes(ymin= mean , ymax= mean+se), width = 0.05) 
+
+h<-g+ scale_y_continuous(limits= c(0,3500)) + labs(x="", y = "Stereotypy Counts")+theme_classic() + theme(legend.position="none") +theme(axis.text.x=element_blank(), axis.ticks.x=element_blank()) + scale_fill_manual(values=c("gray ", "black"))
+
+i<-ggplot(Summary_MOVNO, aes(x=NS_PRS, y=mean, fill=NS_PRS)) + geom_bar( stat= "identity", width=0.45, color = "black") + geom_errorbar(aes(ymin= mean , ymax= mean+se), width = 0.05) 
+
+j<-i+ scale_y_continuous(limits= c(0,170)) + labs(x="", y = "Number of Movements")+theme_classic() +theme(legend.title=element_blank())+theme(axis.text.x=element_blank(), axis.ticks.x=element_blank()) + scale_fill_manual(values=c("gray ", "black"))
+
+g_legend<-function(a.gplot){
+  tmp <- ggplot_gtable(ggplot_build(a.gplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)}
+mylegend<-g_legend(j)
+
+
+grid.arrange(arrangeGrob(f,h,j + theme(legend.position="none"),c,d,mylegend, nrow=2), heights=c(10, 3))
+     
+
+################social interation---intruder sniffing to empty chamber sniffing
+
+y<-read.table(file="SI.txt", header=T,  sep = "\t")
+
+b<- subset(y, Group == "PRS" )
+a<- subset(y, Group == "NS" )
+
+var.test(a$RATIO ,b$RATIO )
+t.test(a$RATIO ,b$RATIO , var.equal=TRUE) ###0.043
+t.test(a$RATIO ,b$RATIO , var.equal=F) 
+
+
+data_summary <- function(data, varname, groupnames){
+  require(plyr)
+  summary_func <- function(x, col){
+    c(mean = mean(x[[col]], na.rm=TRUE),
+      sd = sd(x[[col]], na.rm=TRUE),
+      n = x[[]],
+      se = sd(x[[col]]/sqrt(n)))
+  }
+  data_sum<-ddply(data, groupnames, .fun=summary_func,
+                  varname)
+  data_sum <- rename(data_sum, c("mean" = varname))
+ return(data_sum)
+}
+
+Summary_ratio<- as.data.frame(Summary_Dist<- y %>%	
+	group_by(Group) %>%
+	summarise(mean_Dist = mean(RATIO),
+	sd= sd(RATIO),
+	n= n(),
+	se= sd(RATIO)/sqrt(n())))
+	
+	
+a<-ggplot(Summary_ratio, aes(x=Group, y=mean_Dist, fill=Group)) + geom_bar( stat= "identity", width=0.45,, color = "black") +geom_errorbar(aes(ymin=mean_Dist , ymax= mean_Dist+sd), width = 0.05) 
+
+c<-a+ labs(x="", y = "sniffing intruder/sniffing empty")+theme_classic() + theme(legend.position="none") +theme(axis.text.x=element_blank(), axis.ticks.x=element_blank()) + scale_fill_manual(values=c("darkolivegreen4 ", "darkgoldenrod2"))
+
